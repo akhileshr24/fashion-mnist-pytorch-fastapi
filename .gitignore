@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# Model files
+models/*.pth
+
+# Large datasets
+data/
+
+# Environment variables
+.env
+
+# Test images
+test_images/
