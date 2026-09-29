@@ -1,36 +1,56 @@
 import torch
+from explore_data import test_dataset
+from model import FashionCNN
 from sklearn.metrics import confusion_matrix
 
-from src.explore_data import test_dataset
-from src.model import FashionCNN
-
+# Create model
 model = FashionCNN()
 
-model.load_state_dict(torch.load("model.pth"))
 
+# Load trained weights
+model.load_state_dict(
+    torch.load(
+        "models/model.pth",
+        weights_only=True
+    )
+)
+
+
+# Evaluation mode
 model.eval()
 
-predictions=[]
+
+# Store predictions and actual labels
+predictions = []
 actual = []
 
+
+# Disable gradients
 with torch.no_grad():
+
     for image, label in test_dataset:
 
-        image =  image.unsqueeze(0)
+        # Add batch dimension
+        image = image.unsqueeze(0)
 
+        # Make prediction
         output = model(image)
 
-        prediction = output.argmax(dim=1).item()
+        # Get predicted class
+        prediction = output.argmax(
+            dim=1
+        ).item()
 
-        # if prediction == label:
-        #     print("Correct!!")
-        # else:
-        #     print("Wrong!")
-
+        # Store results
         predictions.append(prediction)
         actual.append(label)
 
 
-matrix = confusion_matrix(actual, predictions)
+# Create confusion matrix
+matrix = confusion_matrix(
+    actual,
+    predictions
+)
+
 
 print(matrix)

@@ -1,9 +1,9 @@
 import torch
 
-from src.explore_data import test_dataset
-from src.model import FashionCNN
+from explore_data import test_dataset
+from model import FashionCNN
 
-# Class names
+
 class_names = [
     "T-shirt/top",
     "Trouser",
@@ -24,15 +24,16 @@ model = FashionCNN()
 
 # Load trained model
 model.load_state_dict(
-    torch.load("model.pth")
+    torch.load(
+        "models/model.pth",
+        weights_only=True
+    )
 )
 
-
-# Evaluation mode
 model.eval()
 
 
-# Get one image from test dataset
+# Get one test image
 image, label = test_dataset[0]
 
 
@@ -40,24 +41,42 @@ image, label = test_dataset[0]
 image = image.unsqueeze(0)
 
 
-# Make prediction
 with torch.no_grad():
 
     output = model(image)
 
-    probabilities = torch.softmax(output, dim=1)
+    # Convert scores to probabilities
+    probabilities = torch.softmax(
+        output,
+        dim=1
+    )
 
-    prediction = probabilities.argmax(dim=1).item()
+    # Get predicted class
+    prediction = probabilities.argmax(
+        dim=1
+    ).item()
 
+    # Get confidence
     confidence = probabilities.max().item()
 
-# Get class name
+
 predicted_class = class_names[prediction]
 
 actual_class = class_names[label]
 
 
-# Print results
-print("Real answer:", actual_class)
-print("Prediction:", predicted_class)
-print("Confidence:", confidence * 100, "%")
+print(
+    "Real answer:",
+    actual_class
+)
+
+print(
+    "Prediction:",
+    predicted_class
+)
+
+print(
+    "Confidence:",
+    confidence * 100,
+    "%"
+)

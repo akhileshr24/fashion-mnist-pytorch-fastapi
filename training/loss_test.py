@@ -1,7 +1,6 @@
 import torch
+from model import FashionCNN
 from torch import nn
-
-from src.model import FashionCNN
 
 # Create model
 model = FashionCNN()
