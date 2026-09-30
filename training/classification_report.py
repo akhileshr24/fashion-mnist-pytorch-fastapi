@@ -1,10 +1,7 @@
 import torch
-
-from sklearn.metrics import classification_report
-
 from explore_data import test_dataset
 from model import FashionCNN
-
+from sklearn.metrics import classification_report
 
 class_names = [
     "T-shirt/top",
