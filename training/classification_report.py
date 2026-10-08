@@ -1,7 +1,9 @@
 import torch
-from explore_data import test_dataset
-from model import FashionCNN
 from sklearn.metrics import classification_report
+
+from data import test_loader
+from model import FashionCNN
+
 
 class_names = [
     "T-shirt/top",
@@ -42,29 +44,25 @@ actual = []
 # Disable gradients
 with torch.no_grad():
 
-    for image, label in test_dataset:
+    for images, labels in test_loader:
 
-        # Add batch dimension
-        image = image.unsqueeze(0)
+        # Make predictions
+        outputs = model(images)
 
-        # Make prediction
-        output = model(image)
-
-        # Get predicted class
-        prediction = output.argmax(
-            dim=1
-        ).item()
+        # Get predicted classes
+        predicted_classes = outputs.argmax(dim=1)
 
         # Store results
-        predictions.append(prediction)
-        actual.append(label)
+        predictions.extend(predicted_classes.tolist())
+        actual.extend(labels.tolist())
 
 
 # Generate classification report
-print(
-    classification_report(
-        actual,
-        predictions,
-        target_names=class_names
-    )
+report = classification_report(
+    actual,
+    predictions,
+    target_names=class_names
 )
+
+
+print(report)

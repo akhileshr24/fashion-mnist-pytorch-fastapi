@@ -1,12 +1,14 @@
 import torch
-from explore_data import test_dataset
+
+from data import test_loader
 from model import FashionCNN
+
 
 # Create model
 model = FashionCNN()
 
 
-# Load trained weights
+# Load the best trained model
 model.load_state_dict(
     torch.load(
         "models/model.pth",
@@ -15,7 +17,7 @@ model.load_state_dict(
 )
 
 
-# Put model in evaluation mode
+# Evaluation mode
 model.eval()
 
 
@@ -26,29 +28,23 @@ total = 0
 # Disable gradient calculation
 with torch.no_grad():
 
-    for image, label in test_dataset:
+    for images, labels in test_loader:
 
-        # Add batch dimension
-        image = image.unsqueeze(0)
+        # Make predictions
+        outputs = model(images)
 
-        # Make prediction
-        output = model(image)
+        # Get predicted classes
+        predictions = outputs.argmax(dim=1)
 
-        # Get predicted class
-        prediction = output.argmax(
-            dim=1
-        ).item()
+        # Count correct predictions
+        correct += (predictions == labels).sum().item()
 
-        # Check prediction
-        if prediction == label:
-            correct += 1
-
-        total += 1
+        # Count total samples
+        total += labels.size(0)
 
 
-# Calculate accuracy
+# Calculate test accuracy
 accuracy = 100 * correct / total
 
-print(
-    f"Test Accuracy: {accuracy:.2f}%"
-)
+
+print(f"Test Accuracy: {accuracy:.2f}%")
