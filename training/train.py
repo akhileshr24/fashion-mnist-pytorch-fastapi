@@ -1,5 +1,5 @@
 import torch
-from explore_data import train_loader
+from data import train_loader, val_loader
 from model import FashionCNN
 from torch import nn
 
@@ -18,36 +18,117 @@ optimizer = torch.optim.Adam(
 )
 
 
+# Early stopping settings
+num_epochs = 20
+patience = 3
+
+best_val_loss = float("inf")
+patience_counter = 0
+
+
 # Training
-for epoch in range(5):
+for epoch in range(num_epochs):
+
+    # -------------------------
+    # Training
+    # -------------------------
+    model.train()
+
+    train_loss = 0.0
+    train_correct = 0
+    train_total = 0
 
     for images, labels in train_loader:
 
-        # 1. Clear old gradients
         optimizer.zero_grad()
 
-        # 2. Make predictions
         outputs = model(images)
 
-        # 3. Calculate loss
         loss = loss_fn(outputs, labels)
 
-        # 4. Calculate gradients
         loss.backward()
 
-        # 5. Update model weights
         optimizer.step()
 
+        train_loss += loss.item()
+
+        predictions = outputs.argmax(dim=1)
+
+        train_correct += (predictions == labels).sum().item()
+        train_total += labels.size(0)
+
+    average_train_loss = train_loss / len(train_loader)
+    train_accuracy = 100 * train_correct / train_total
+
+
+    # -------------------------
+    # Validation
+    # -------------------------
+    model.eval()
+
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+
+    with torch.no_grad():
+
+        for images, labels in val_loader:
+
+            outputs = model(images)
+
+            loss = loss_fn(outputs, labels)
+
+            val_loss += loss.item()
+
+            predictions = outputs.argmax(dim=1)
+
+            val_correct += (predictions == labels).sum().item()
+            val_total += labels.size(0)
+
+    average_val_loss = val_loss / len(val_loader)
+    val_accuracy = 100 * val_correct / val_total
+
+
+    # -------------------------
+    # Print results
+    # -------------------------
     print(
-        f"Epoch {epoch + 1}, "
-        f"Loss: {loss.item():.4f}"
+        f"Epoch {epoch + 1}/{num_epochs} | "
+        f"Train Loss: {average_train_loss:.4f} | "
+        f"Train Acc: {train_accuracy:.2f}% | "
+        f"Val Loss: {average_val_loss:.4f} | "
+        f"Val Acc: {val_accuracy:.2f}%"
     )
 
 
-# Save trained model
-torch.save(
-    model.state_dict(),
-    "models/model.pth"
-)
+    # -------------------------
+    # Save best model
+    # -------------------------
+    if average_val_loss < best_val_loss:
 
-print("Model saved!")
+        best_val_loss = average_val_loss
+        patience_counter = 0
+
+        torch.save(
+            model.state_dict(),
+            "models/model.pth"
+        )
+
+        print("Best model saved!")
+
+    else:
+
+        patience_counter += 1
+
+        print(
+            f"No improvement. "
+            f"Patience: {patience_counter}/{patience}"
+        )
+
+        if patience_counter >= patience:
+
+            print("Early stopping triggered.")
+            break
+
+
+print("Training completed!")
